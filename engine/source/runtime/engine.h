@@ -6,16 +6,16 @@
 #include <string>
 #include <unordered_set>
 
-namespace Pilot
+namespace Piccolo
 {
     extern bool                            g_is_editor_mode;
     extern std::unordered_set<std::string> g_editor_tick_component_types;
 
-    class PilotEngine
+    class PiccoloEngine
     {
-        friend class PilotEditor;
+        friend class PiccoloEditor;
 
-        static const float k_fps_alpha;
+        static const float s_fps_alpha;
 
     public:
         void startEngine(const std::string& config_file_path);
@@ -32,7 +32,7 @@ namespace Pilot
 
     protected:
         void logicalTick(float delta_time);
-        bool rendererTick();
+        bool rendererTick(float delta_time);
 
         void calculateFPS(float delta_time);
 
@@ -51,4 +51,4 @@ namespace Pilot
         int   m_fps {0};
     };
 
-} // namespace Pilot
+} // namespace Piccolo

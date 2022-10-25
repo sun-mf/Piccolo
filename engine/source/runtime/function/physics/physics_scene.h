@@ -1,5 +1,7 @@
 #pragma once
 
+#include "runtime/core/math/axis_aligned.h"
+
 #include "runtime/function/physics/physics_config.h"
 
 namespace JPH
@@ -13,20 +15,20 @@ namespace JPH
 #endif
 } // namespace JPH
 
-namespace Pilot
+namespace Piccolo
 {
     class Transform;
     class RigidBodyComponentRes;
     class RigidBodyShape;
 
-    static constexpr uint32_t k_invalid_rigidbody_id = 0xffffffff;
+    static constexpr uint32_t s_invalid_rigidbody_id = 0xffffffff;
 
     struct PhysicsHitInfo
     {
         Vector3  hit_position;
         Vector3  hit_normal;
         float    hit_distance {0.f};
-        uint32_t body_id {k_invalid_rigidbody_id};
+        uint32_t body_id {s_invalid_rigidbody_id};
     };
 
     class PhysicsScene
@@ -43,33 +45,37 @@ namespace Pilot
         };
 
     public:
-        PhysicsScene();
+        PhysicsScene(const Vector3& gravity);
         virtual ~PhysicsScene();
+
+        const Vector3& getGravity() const { return m_config.m_gravity; }
 
         uint32_t createRigidBody(const Transform& global_transform, const RigidBodyComponentRes& rigidbody_actor_res);
         void     removeRigidBody(uint32_t body_id);
+
+        void updateRigidBodyGlobalTransform(uint32_t body_id, const Transform& global_transform);
 
         void tick(float delta_time);
 
         /// cast a ray and find the hits
         /// @ray_origin: origin of ray
-        /// @ray_directory: ray directory
+        /// @ray_direction: ray direction
         /// @ray_length: ray length, anything beyond this length will not be reported as a hit
         /// @out_hits: the found hits, sorted by distance
         /// @return: true if any hits found, else false
         bool
-        raycast(Vector3 ray_origin, Vector3 ray_directory, float ray_length, std::vector<PhysicsHitInfo>& out_hits);
+        raycast(Vector3 ray_origin, Vector3 ray_direction, float ray_length, std::vector<PhysicsHitInfo>& out_hits);
 
         /// cast a shape and find the hits
         /// @shape: the casted rigidbody shape
         /// @shape_transform: the initial global transform of the casted shape
-        /// @sweep_directory: sweep directory
+        /// @sweep_direction: sweep direction
         /// @sweep_length: sweep length, anything beyond this length will not be reported as a hit
         /// @out_hits: the found hits, sorted by distance
         /// @return: true if any hits found, else false
         bool sweep(const RigidBodyShape&        shape,
                    const Matrix4x4&             shape_transform,
-                   Vector3                      sweep_directory,
+                   Vector3                      sweep_direction,
                    float                        sweep_length,
                    std::vector<PhysicsHitInfo>& out_hits);
 
@@ -77,6 +83,8 @@ namespace Pilot
         /// @shape: rigidbody shape
         /// @return: true if overlapped with any rigidbodies
         bool isOverlap(const RigidBodyShape& shape, const Matrix4x4& global_transform);
+
+        void getShapeBoundingBoxes(uint32_t body_id, std::vector<AxisAlignedBox>& out_bounding_boxes) const;
 
 #ifdef ENABLE_PHYSICS_DEBUG_RENDERER
         void drawPhysicsScene(JPH::DebugRenderer* debug_renderer);
@@ -90,4 +98,4 @@ namespace Pilot
 
         std::vector<uint32_t> m_pending_remove_bodies;
     };
-} // namespace Pilot
+} // namespace Piccolo
